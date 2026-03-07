@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subcontractor Payout Slip</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      padding: 2rem;
+      color: #333;
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .controls button {
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0 0.5rem;
+    }
+
+    #addRowBtn {
+      background: #4a90d9;
+      color: #fff;
+    }
+
+    #addRowBtn:hover { background: #3a7bc8; }
+
+    #exportBtn {
+      background: #2ecc71;
+      color: #fff;
+    }
+
+    #exportBtn:hover { background: #27ae60; }
+
+    /* === Slip (the printable area) === */
+    #slip {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .slip-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #4a90d9;
+      padding-bottom: 1rem;
+    }
+
+    .slip-header h1 {
+      font-size: 1.6rem;
+      color: #2c3e50;
+    }
+
+    .slip-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .slip-meta label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .slip-meta input {
+      display: block;
+      margin-top: 0.3rem;
+      padding: 0.5rem 0.7rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 260px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+
+    thead th {
+      background: #4a90d9;
+      color: #fff;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    thead th:last-child { text-align: center; }
+
+    tbody td {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    tbody tr:nth-child(even) { background: #fafafa; }
+
+    tbody td input {
+      width: 100%;
+      padding: 0.4rem 0.5rem;
+      font-size: 0.95rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    tbody td input[type="number"] {
+      text-align: right;
+    }
+
+    .remove-btn {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .remove-btn:hover { background: #c0392b; }
+
+    /* Total row */
+    .total-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 0.75rem 1rem;
+      border-top: 2px solid #4a90d9;
+    }
+
+    .total-row span {
+      margin-left: 1rem;
+      min-width: 120px;
+      text-align: right;
+    }
+
+    /* Quick-pick toggle + chips */
+    .quick-pick-wrapper {
+      margin-top: 0.4rem;
+      position: relative;
+    }
+
+    .quick-pick-toggle {
+      background: none;
+      border: 1px solid #b8d0ed;
+      border-radius: 4px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
+      color: #4a90d9;
+      cursor: pointer;
+    }
+
+    .quick-pick-toggle:hover {
+      background: #eaf1fb;
+    }
+
+    .quick-pick {
+      margin-top: 0.4rem;
+      display: none;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .quick-pick.open {
+      display: flex;
+    }
+
+    .quick-pick button {
+      background: #eaf1fb;
+      color: #2c3e50;
+      border: 1px solid #b8d0ed;
+      border-radius: 16px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .quick-pick button:hover {
+      background: #4a90d9;
+      color: #fff;
+      border-color: #4a90d9;
+    }
+
+    /* Print / PDF tweaks */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .controls { display: none; }
+      .remove-btn { display: none; }
+      .quick-pick { display: none; }
+      #slip { box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <button id="addRowBtn" onclick="addRow()">+ Add Line Item</button>
+    <button id="exportBtn" onclick="exportPDF()">Export PDF</button>
+  </div>
+
+  <div id="slip">
+    <div class="slip-header">
+      <h1>Subcontractor Payout Slip</h1>
+    </div>
+
+    <div class="slip-meta">
+      <div>
+        <label for="subName">Subcontractor Name</label>
+        <input type="text" id="subName" placeholder="e.g. John Doe">
+        <div class="quick-pick-wrapper">
+          <button type="button" class="quick-pick-toggle" onclick="toggleQuickPick()">▼ Select Contractor</button>
+          <div class="quick-pick" id="quickPick"></div>
+        </div>
+      </div>
+      <div>
+        <label for="slipDate">Date</label>
+        <input type="date" id="slipDate">
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60%">Description</th>
+          <th style="width:25%">Amount ($)</th>
+          <th style="width:15%"></th>
+        </tr>
+      </thead>
+      <tbody id="lineItems">
+        <!-- rows inserted by JS -->
+      </tbody>
+    </table>
+
+    <div class="total-row">
+      Total: <span id="totalAmount">$0.00</span>
+    </div>
+  </div>
+
+  <script>
+    // Set default date to today
+    document.getElementById('slipDate').valueAsDate = new Date();
+
+    // Load subcontractor quick-pick list
+    fetch('subs.json')
+      .then(r => r.json())
+      .then(names => {
+        const container = document.getElementById('quickPick');
+        names.forEach(name => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = name;
+          btn.onclick = () => document.getElementById('subName').value = name;
+          container.appendChild(btn);
+        });
+      })
+      .catch(() => { /* subs.json not found or invalid – silent fail */ });
+
+    function toggleQuickPick() {
+      const panel = document.getElementById('quickPick');
+      const btn = document.querySelector('.quick-pick-toggle');
+      const isOpen = panel.classList.toggle('open');
+      btn.textContent = isOpen ? '▲ Hide Contractors' : '▼ Select Contractor';
+    }
+
+    // Seed with one empty row
+    addRow();
+
+    function addRow() {
+      const tbody = document.getElementById('lineItems');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" placeholder="Description" class="desc"></td>
+        <td><input type="number" step="0.01" min="0" placeholder="0.00" class="amt" oninput="calcTotal()"></td>
+        <td style="text-align:center"><button class="remove-btn" onclick="removeRow(this)">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function removeRow(btn) {
+      btn.closest('tr').remove();
+      calcTotal();
+    }
+
+    function calcTotal() {
+      const amounts = document.querySelectorAll('.amt');
+      let sum = 0;
+      amounts.forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) sum += val;
+      });
+      document.getElementById('totalAmount').textContent = '$' + sum.toFixed(2);
+    }
+
+    function exportPDF() {
+      // Temporarily hide remove buttons for clean PDF
+      const removeBtns = document.querySelectorAll('.remove-btn');
+      removeBtns.forEach(b => b.style.display = 'none');
+
+      const element = document.getElementById('slip');
+      const subName = document.getElementById('subName').value.trim() || 'payout-slip';
+      const fileName = subName.replace(/\s+/g, '_') + '_payout.pdf';
+
+      const opt = {
+        margin:       0.5,
+        filename:     fileName,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        removeBtns.forEach(b => b.style.display = '');
+      });
+    }
+  </script>
+
+</body>
+</html>
