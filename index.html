@@ -260,12 +260,22 @@
       filter: brightness(0) invert(1);
     }
 
+    .pdf-ready .slip-header {
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .pdf-ready .slip-header img {
+      max-width: 280px;
+    }
+
     .pdf-ready .slip-meta {
       flex-direction: column;
       background: #f9f5ff;
-      padding: 1rem;
+      padding: 0.6rem 1rem;
       border-radius: 6px;
       border-left: 4px solid #9945FF;
+      margin-bottom: 1rem;
     }
 
     .pdf-ready .slip-meta label {
@@ -313,7 +323,7 @@
 
     .pdf-ready .notes-section {
       border-top: none;
-      margin-top: 1.5rem;
+      margin-top: 1rem;
     }
 
     .pdf-ready .notes-section .pdf-notes {
@@ -471,6 +481,9 @@
         const val = parseFloat(row.querySelector('.amt').value);
         const type = row.querySelector('.type').value;
         if (!isNaN(val)) sum += type === 'deduction' ? -val : val;
+        // Style deduction/bonus amount inputs
+        const amtInput = row.querySelector('.amt');
+        amtInput.style.color = type === 'deduction' ? '#e74c3c' : type === 'bonus' ? '#2ecc71' : '';
       });
       document.getElementById('totalAmount').textContent = '$' + sum.toFixed(2);
     }
@@ -498,7 +511,15 @@
           span.textContent = el.options[el.selectedIndex].text;
         } else if (el.classList.contains('amt')) {
           const val = parseFloat(el.value);
-          span.textContent = !isNaN(val) ? '$' + val.toFixed(2) : '';
+          const rowType = el.closest('tr').querySelector('.type');
+          const typeVal = rowType ? rowType.value : '';
+          if (!isNaN(val)) {
+            span.textContent = typeVal === 'deduction' ? '($' + val.toFixed(2) + ')' : '$' + val.toFixed(2);
+            if (typeVal === 'deduction') span.style.color = '#e74c3c';
+            if (typeVal === 'bonus') span.style.color = '#2ecc71';
+          } else {
+            span.textContent = '';
+          }
         } else {
           span.textContent = el.value;
         }
