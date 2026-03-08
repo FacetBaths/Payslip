@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subcontractor Payout Slip</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Tomorrow', sans-serif;
       background: #f0f2f5;
       padding: 2rem;
       color: #333;
@@ -30,18 +31,18 @@
     }
 
     #addRowBtn {
-      background: #4a90d9;
+      background: #9945FF;
       color: #fff;
     }
 
-    #addRowBtn:hover { background: #3a7bc8; }
+    #addRowBtn:hover { background: #7a2de6; }
 
     #exportBtn {
-      background: #2ecc71;
-      color: #fff;
+      background: #14F195;
+      color: #000;
     }
 
-    #exportBtn:hover { background: #27ae60; }
+    #exportBtn:hover { background: #0fd480; }
 
     /* === Slip (the printable area) === */
     #slip {
@@ -56,13 +57,18 @@
     .slip-header {
       text-align: center;
       margin-bottom: 2rem;
-      border-bottom: 2px solid #4a90d9;
+      border-bottom: 2px solid #9945FF;
       padding-bottom: 1rem;
+    }
+
+    .slip-header img {
+      max-width: 360px;
+      margin-bottom: 0.75rem;
     }
 
     .slip-header h1 {
       font-size: 1.6rem;
-      color: #2c3e50;
+      color: #9945FF;
     }
 
     .slip-meta {
@@ -97,7 +103,7 @@
     }
 
     thead th {
-      background: #4a90d9;
+      background: #9945FF;
       color: #fff;
       padding: 0.75rem 1rem;
       text-align: left;
@@ -145,13 +151,39 @@
       font-size: 1.2rem;
       font-weight: 700;
       padding: 0.75rem 1rem;
-      border-top: 2px solid #4a90d9;
+      border-top: 2px solid #9945FF;
     }
 
     .total-row span {
       margin-left: 1rem;
       min-width: 120px;
       text-align: right;
+    }
+
+    /* Notes */
+    .notes-section {
+      margin-top: 1.5rem;
+      border-top: 1px solid #e8e8e8;
+      padding-top: 1rem;
+    }
+
+    .notes-section label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #555;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .notes-section textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
     }
 
     /* Quick-pick toggle + chips */
@@ -162,16 +194,16 @@
 
     .quick-pick-toggle {
       background: none;
-      border: 1px solid #b8d0ed;
+      border: 1px solid #c9a6ff;
       border-radius: 4px;
       padding: 0.25rem 0.6rem;
       font-size: 0.8rem;
-      color: #4a90d9;
+      color: #9945FF;
       cursor: pointer;
     }
 
     .quick-pick-toggle:hover {
-      background: #eaf1fb;
+      background: #f3e8ff;
     }
 
     .quick-pick {
@@ -186,9 +218,9 @@
     }
 
     .quick-pick button {
-      background: #eaf1fb;
-      color: #2c3e50;
-      border: 1px solid #b8d0ed;
+      background: #f3e8ff;
+      color: #333;
+      border: 1px solid #c9a6ff;
       border-radius: 16px;
       padding: 0.3rem 0.8rem;
       font-size: 0.85rem;
@@ -197,9 +229,129 @@
     }
 
     .quick-pick button:hover {
-      background: #4a90d9;
+      background: #9945FF;
       color: #fff;
-      border-color: #4a90d9;
+      border-color: #9945FF;
+    }
+
+    /* PDF-ready mode: replaces inputs with plain text */
+    .pdf-ready .quick-pick-wrapper { display: none; }
+    .pdf-ready .remove-btn { display: none; }
+    .pdf-ready .controls { display: none; }
+
+    .pdf-ready {
+      padding: 0 !important;
+    }
+
+    .pdf-ready .slip-header h3 {
+      background: linear-gradient(135deg, #9945FF,#000, #14F195);
+      border-bottom: none;
+      border-radius: 3px;
+      padding: .5rem 1rem .5rem;
+      margin-bottom: .5rem;
+    }
+
+    .pdf-ready .slip-header h3 {
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .pdf-ready .slip-header img {
+      filter: brightness(0) invert(1);
+    }
+
+    .pdf-ready .slip-meta {
+      flex-direction: column;
+      background: #f9f5ff;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #9945FF;
+    }
+
+    .pdf-ready .slip-meta label {
+      color: #9945FF;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pdf-ready .pdf-meta-text {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 500;
+      margin-top: 0.15rem;
+      color: #1a1a1a;
+    }
+
+    .pdf-ready #slipDate {
+      border: none;
+      padding-left: 0;
+      font-weight: 500;
+      font-size: 1.05rem;
+      background: transparent;
+    }
+
+    .pdf-ready thead th {
+      background: linear-gradient(135deg, #9945FF, #7a2de6);
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .pdf-ready tbody td {
+      padding: 0.65rem 1rem;
+    }
+
+    .pdf-ready .total-row {
+      background: #f9f5ff;
+      border-top: 3px solid #9945FF;
+      border-radius: 0 0 6px 6px;
+      padding: 1rem;
+      font-size: 1.3rem;
+      color: #9945FF;
+    }
+
+    .pdf-ready .notes-section {
+      border-top: none;
+      margin-top: 1.5rem;
+    }
+
+    .pdf-ready .notes-section .pdf-notes {
+      border: 1px solid #d4bfff;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      min-height: 60px;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: #fdfcff;
+    }
+
+    .pdf-ready .notes-section .pdf-notes-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9945FF;
+      margin-bottom: 0.3rem;
+    }
+
+    .pdf-ready .notes-section label {
+      display: none;
+    }
+
+    .pdf-ready .pdf-text {
+      display: block;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      padding: 0.4rem 0;
+      font-size: 0.95rem;
+    }
+
+    .pdf-ready .pdf-text.amt {
+      text-align: right;
+      font-weight: 600;
     }
 
     /* Print / PDF tweaks */
@@ -207,26 +359,23 @@
       body { background: #fff; padding: 0; }
       .controls { display: none; }
       .remove-btn { display: none; }
-      .quick-pick { display: none; }
+      .quick-pick-wrapper { display: none; }
       #slip { box-shadow: none; border-radius: 0; }
     }
   </style>
 </head>
 <body>
 
-  <div class="controls">
-    <button id="addRowBtn" onclick="addRow()">+ Add Line Item</button>
-    <button id="exportBtn" onclick="exportPDF()">Export PDF</button>
-  </div>
-
+  
   <div id="slip">
     <div class="slip-header">
-      <h1>Subcontractor Payout Slip</h1>
+      <img src="assets/Logo_v3_hi_res.png" alt="Facet Renovations">
+      <h3>Installer Payout Slip</h3>
     </div>
-
+    
     <div class="slip-meta">
       <div>
-        <label for="subName">Subcontractor Name</label>
+        <label for="subName">Crew</label>
         <input type="text" id="subName" placeholder="e.g. John Doe">
         <div class="quick-pick-wrapper">
           <button type="button" class="quick-pick-toggle" onclick="toggleQuickPick()">▼ Select Contractor</button>
@@ -238,25 +387,36 @@
         <input type="date" id="slipDate">
       </div>
     </div>
-
+    
     <table>
       <thead>
         <tr>
-          <th style="width:60%">Description</th>
-          <th style="width:25%">Amount ($)</th>
-          <th style="width:15%"></th>
+          <th style="width:25%">Title</th>
+          <th style="width:15%">Type</th>
+          <th style="width:35%">Description</th>
+          <th style="width:15%">Amount ($)</th>
+          <th style="width:10%"></th>
         </tr>
       </thead>
       <tbody id="lineItems">
         <!-- rows inserted by JS -->
       </tbody>
     </table>
-
+    
     <div class="total-row">
       Total: <span id="totalAmount">$0.00</span>
     </div>
+    
+    <div class="controls">
+      <button id="addRowBtn" onclick="addRow()">+ Add Line Item</button>
+      <button id="exportBtn" onclick="exportPDF()">Export PDF</button>
+    </div>
+    <div class="notes-section">
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Additional notes..."></textarea>
+    </div>
   </div>
-
+  
   <script>
     // Set default date to today
     document.getElementById('slipDate').valueAsDate = new Date();
@@ -290,6 +450,8 @@
       const tbody = document.getElementById('lineItems');
       const tr = document.createElement('tr');
       tr.innerHTML = `
+        <td><input type="text" placeholder="Title" class="title"></td>
+        <td><select class="type" onchange="calcTotal()"><option value="project">Project</option><option value="service_call">Service Call</option><option value="deduction">Deduction</option><option value="bonus">BONUS</option></select></td>
         <td><input type="text" placeholder="Description" class="desc"></td>
         <td><input type="number" step="0.01" min="0" placeholder="0.00" class="amt" oninput="calcTotal()"></td>
         <td style="text-align:center"><button class="remove-btn" onclick="removeRow(this)">✕</button></td>
@@ -303,34 +465,86 @@
     }
 
     function calcTotal() {
-      const amounts = document.querySelectorAll('.amt');
+      const rows = document.querySelectorAll('#lineItems tr');
       let sum = 0;
-      amounts.forEach(input => {
-        const val = parseFloat(input.value);
-        if (!isNaN(val)) sum += val;
+      rows.forEach(row => {
+        const val = parseFloat(row.querySelector('.amt').value);
+        const type = row.querySelector('.type').value;
+        if (!isNaN(val)) sum += type === 'deduction' ? -val : val;
       });
       document.getElementById('totalAmount').textContent = '$' + sum.toFixed(2);
     }
 
     function exportPDF() {
-      // Temporarily hide remove buttons for clean PDF
-      const removeBtns = document.querySelectorAll('.remove-btn');
-      removeBtns.forEach(b => b.style.display = 'none');
-
-      const element = document.getElementById('slip');
+      const slip = document.getElementById('slip');
       const subName = document.getElementById('subName').value.trim() || 'payout-slip';
-      const fileName = subName.replace(/\s+/g, '_') + '_payout.pdf';
+      const slipDate = document.getElementById('slipDate').value || new Date().toISOString().slice(0, 10);
+      const fileName = subName.replace(/\s+/g, '_') + '_' + slipDate + '_payout.pdf';
+
+      // Replace subcontractor name input with plain text for wrapping
+      const subNameInput = document.getElementById('subName');
+      const subNameSpan = document.createElement('span');
+      subNameSpan.className = 'pdf-meta-text';
+      subNameSpan.textContent = subNameInput.value;
+      subNameInput.parentNode.insertBefore(subNameSpan, subNameInput);
+      subNameInput.style.display = 'none';
+
+      // Replace table inputs/selects with plain text spans for clean PDF
+      const saved = [];
+      slip.querySelectorAll('#lineItems input, #lineItems select').forEach(el => {
+        const span = document.createElement('span');
+        span.className = 'pdf-text' + (el.classList.contains('amt') ? ' amt' : '');
+        if (el.tagName === 'SELECT') {
+          span.textContent = el.options[el.selectedIndex].text;
+        } else if (el.classList.contains('amt')) {
+          const val = parseFloat(el.value);
+          span.textContent = !isNaN(val) ? '$' + val.toFixed(2) : '';
+        } else {
+          span.textContent = el.value;
+        }
+        saved.push({ el, parent: el.parentNode, next: el.nextSibling });
+        el.parentNode.replaceChild(span, el);
+      });
+
+      // Replace textarea with a div so notes render in PDF
+      const notesTextarea = slip.querySelector('#notes');
+      const notesDiv = document.createElement('div');
+      notesDiv.className = 'pdf-notes';
+      const notesLabel = document.createElement('span');
+      notesLabel.className = 'pdf-notes-label';
+      notesLabel.textContent = 'Notes';
+      notesDiv.appendChild(notesLabel);
+      notesDiv.appendChild(document.createTextNode(notesTextarea.value));
+      notesTextarea.parentNode.insertBefore(notesDiv, notesTextarea);
+      notesTextarea.style.display = 'none';
+      slip.querySelector('.notes-section label').style.display = 'none';
+
+      slip.classList.add('pdf-ready');
+
+      // Temporarily strip body padding so capture is tight
+      const origBodyPad = document.body.style.padding;
+      document.body.style.padding = '0';
 
       const opt = {
-        margin:       0.5,
+        margin:       [0.3, 0.5, 0.3, 0.5],
         filename:     fileName,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, useCORS: true, scrollY: -window.scrollY },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(element).save().then(() => {
-        removeBtns.forEach(b => b.style.display = '');
+      html2pdf().set(opt).from(slip).save().then(() => {
+        // Restore body padding
+        document.body.style.padding = origBodyPad;
+        // Restore original inputs
+        slip.querySelectorAll('.pdf-text').forEach(span => span.remove());
+        saved.forEach(({ el, parent, next }) => parent.insertBefore(el, next));
+        subNameSpan.remove();
+        subNameInput.style.display = '';
+        notesDiv.remove();
+        notesTextarea.style.display = '';
+        slip.querySelector('.notes-section label').style.display = '';
+        slip.classList.remove('pdf-ready');
       });
     }
   </script>
