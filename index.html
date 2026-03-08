@@ -502,6 +502,13 @@
       subNameInput.parentNode.insertBefore(subNameSpan, subNameInput);
       subNameInput.style.display = 'none';
 
+      // Capture each row's type before we start replacing elements
+      const rowTypes = new Map();
+      slip.querySelectorAll('#lineItems tr').forEach(tr => {
+        const sel = tr.querySelector('.type');
+        if (sel) rowTypes.set(tr, sel.value);
+      });
+
       // Replace table inputs/selects with plain text spans for clean PDF
       const saved = [];
       slip.querySelectorAll('#lineItems input, #lineItems select').forEach(el => {
@@ -511,8 +518,7 @@
           span.textContent = el.options[el.selectedIndex].text;
         } else if (el.classList.contains('amt')) {
           const val = parseFloat(el.value);
-          const rowType = el.closest('tr').querySelector('.type');
-          const typeVal = rowType ? rowType.value : '';
+          const typeVal = rowTypes.get(el.closest('tr')) || '';
           if (!isNaN(val)) {
             span.textContent = typeVal === 'deduction' ? '($' + val.toFixed(2) + ')' : '$' + val.toFixed(2);
             if (typeVal === 'deduction') span.style.color = '#e74c3c';
