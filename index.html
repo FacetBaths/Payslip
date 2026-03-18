@@ -461,7 +461,16 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><input type="text" placeholder="Title" class="title"></td>
-        <td><select class="type" onchange="calcTotal()"><option value="project">Project</option><option value="service_call">Service Call</option><option value="deduction">Deduction</option><option value="bonus">BONUS</option><option value="expense">Reimbursement</option><option value="correction">Correction</option></select></td>
+        <td><select class="type" onchange="calcTotal()">
+          <option value="project">Project</option>
+          <option value="service_call">Service Call</option>
+          <option value="deduction">Deduction</option>
+          <option value="bonus">BONUS</option>
+          <option value="expense">Reimbursement</option>
+          <option value="correction">Correction</option>
+          <option value="commission">Comission</option>
+          <option value="split">Split</option>
+          </select></td>
         <td><input type="text" placeholder="Description" class="desc"></td>
         <td><input type="number" step="0.01" min="0" placeholder="0.00" class="amt" oninput="calcTotal()"></td>
         <td style="text-align:center"><button class="remove-btn" onclick="removeRow(this)">✕</button></td>
