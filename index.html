@@ -45,6 +45,35 @@
 
     #exportBtn:hover { background: #0fd480; }
 
+    .file-controls {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .file-controls button {
+      padding: 0.45rem 1rem;
+      font-size: 0.85rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0 0.3rem;
+      background: #fff;
+      color: #333;
+      transition: background 0.15s;
+    }
+
+    .file-controls button:hover {
+      background: #f3e8ff;
+      border-color: #9945FF;
+      color: #9945FF;
+    }
+
+    .file-controls .clear-btn:hover {
+      background: #fde8e8;
+      border-color: #e74c3c;
+      color: #e74c3c;
+    }
+
     /* === Slip (the printable area) === */
     #slip {
       max-width: 800px;
@@ -239,6 +268,7 @@
     .pdf-ready .quick-pick-wrapper { display: none; }
     .pdf-ready .remove-btn { display: none; }
     .pdf-ready .controls { display: none; }
+    .pdf-ready .file-controls { display: none; }
 
     .pdf-ready {
       padding: 0 !important;
@@ -369,6 +399,7 @@
     @media print {
       body { background: #fff; padding: 0; }
       .controls { display: none; }
+      .file-controls { display: none; }
       .remove-btn { display: none; }
       .quick-pick-wrapper { display: none; }
       #slip { box-shadow: none; border-radius: 0; }
@@ -421,6 +452,12 @@
     <div class="controls">
       <button id="addRowBtn" onclick="addRow()">+ Add Line Item</button>
       <button id="exportBtn" onclick="exportPDF()">Export PDF</button>
+    </div>
+    <div class="file-controls">
+      <button onclick="saveJSON()">💾 Save JSON</button>
+      <button onclick="document.getElementById('jsonUpload').click()">📂 Load JSON</button>
+      <button class="clear-btn" onclick="clearForm()">🗑 Clear</button>
+      <input type="file" id="jsonUpload" accept=".json" style="display:none" onchange="loadJSON(this)">
     </div>
     <div class="notes-section">
       <label for="notes">Notes</label>
@@ -496,6 +533,83 @@
         amtInput.style.color = type === 'deduction' ? '#e74c3c' : type === 'bonus' ? '#2ecc71' : '';
       });
       document.getElementById('totalAmount').textContent = '$' + sum.toFixed(2);
+    }
+
+    // === Save / Load / Clear ===
+    function getFormData() {
+      const rows = [];
+      document.querySelectorAll('#lineItems tr').forEach(tr => {
+        rows.push({
+          title: tr.querySelector('.title').value,
+          type: tr.querySelector('.type').value,
+          description: tr.querySelector('.desc').value,
+          amount: tr.querySelector('.amt').value
+        });
+      });
+      return {
+        payee: document.getElementById('subName').value,
+        date: document.getElementById('slipDate').value,
+        notes: document.getElementById('notes').value,
+        lineItems: rows
+      };
+    }
+
+    function loadFormData(data) {
+      document.getElementById('subName').value = data.payee || '';
+      document.getElementById('slipDate').value = data.date || '';
+      document.getElementById('notes').value = data.notes || '';
+      // Clear existing rows and rebuild
+      const tbody = document.getElementById('lineItems');
+      tbody.innerHTML = '';
+      (data.lineItems || []).forEach(item => {
+        addRow();
+        const tr = tbody.lastElementChild;
+        tr.querySelector('.title').value = item.title || '';
+        tr.querySelector('.type').value = item.type || 'project';
+        tr.querySelector('.desc').value = item.description || '';
+        tr.querySelector('.amt').value = item.amount || '';
+      });
+      if (!data.lineItems || data.lineItems.length === 0) addRow();
+      calcTotal();
+    }
+
+    function saveJSON() {
+      const data = getFormData();
+      const payee = data.payee.trim() || 'payout-slip';
+      const date = data.date || new Date().toISOString().slice(0, 10);
+      const fileName = payee.replace(/\s+/g, '_') + '_' + date + '.json';
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function loadJSON(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          loadFormData(data);
+        } catch {
+          alert('Invalid JSON file.');
+        }
+      };
+      reader.readAsText(file);
+      input.value = ''; // reset so same file can be re-loaded
+    }
+
+    function clearForm() {
+      if (!confirm('Clear all fields?')) return;
+      document.getElementById('subName').value = '';
+      document.getElementById('slipDate').valueAsDate = new Date();
+      document.getElementById('notes').value = '';
+      document.getElementById('lineItems').innerHTML = '';
+      addRow();
+      calcTotal();
     }
 
     function exportPDF() {
